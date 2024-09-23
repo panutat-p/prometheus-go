@@ -1,0 +1,21 @@
+version: '3'
+
+tasks:
+
+  run:
+    cmds:
+      - go run cmd/main.go
+
+  install:
+    cmds:
+      - go mod tidy
+
+  lint:
+    cmds:
+      - gofmt -l -w .
+      - gci write -s standard -s default -s 'prefix(github.com/panutat-p)' -s localmodule .
+
+  open:
+    cmds:
+      - open -a 'Google Chrome' http://localhost:8080/metrics
+      - open -a 'Google Chrome' http://localhost:9090
