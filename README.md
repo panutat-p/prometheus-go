@@ -4,6 +4,8 @@ https://github.com/panutat-p/prometheus-go
 
 ## Guides
 
+https://youtube.com/playlist?list=PLyBW7UHmEXgylLwxdVbrBQJ-fJ_jMvh8h&si=rjYaENhLzGXhfwXb
+
 https://www.youtube.com/watch?v=18dyI_8VFa0
 
 ## Server

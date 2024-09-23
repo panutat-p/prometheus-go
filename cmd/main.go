@@ -3,16 +3,14 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"prometheus_go/internal"
 )
 
 const (
@@ -32,51 +30,29 @@ func main() {
 		syscall.SIGTERM,
 	)
 
+	h := internal.NewHandler()
+
 	e := echo.New()
-	e.GET("/", Health)
-	e.GET("/hello", Hello)
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	e.GET("/", h.Health)
+	e.GET("/metrics", h.PrometheusMetrics)
+	e.GET("/increase", h.Increase)
 
 	go func() {
 		err := e.Start(":" + PORT)
 		if err != nil {
-			panic(err)
+			fmt.Println("[Echo]", err)
 		}
 	}()
 
-	opsProcessed := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "go_client_total_ops_process",
-		Help: "The total number of processed events",
-	})
-	go func() {
-		for {
-			opsProcessed.Inc()
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
+	m := internal.NewJob()
+	m.Run()
 
 	<-SIGNAL_STOP
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	err := e.Shutdown(ctx)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("Exit")
-}
-
-func Health(c echo.Context) error {
-	return c.JSON(
-		http.StatusOK, map[string]any{
-			"status": "ok",
-		},
-	)
-}
-
-func Hello(c echo.Context) error {
-	return c.JSON(
-		http.StatusOK, map[string]any{
-			"message": "hello",
-		},
-	)
 }
