@@ -29,6 +29,14 @@ func main() {
 		syscall.SIGKILL,
 		syscall.SIGTERM,
 	)
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGINT,
+		syscall.SIGKILL,
+		syscall.SIGTERM,
+	)
+	defer cancel()
 
 	h := internal.NewHandler()
 
@@ -44,15 +52,20 @@ func main() {
 		}
 	}()
 
-	m := internal.NewJob()
-	m.Run()
+	go internal.StartCounter(ctx, "total_apple", 500*time.Millisecond)
+	go internal.StartCounter(ctx, "total_banana", 1*time.Second)
+
+	go internal.StartCounterVec(ctx, "total_monkey", "001", 100*time.Millisecond)
+	go internal.StartCounterVec(ctx, "total_turtle", "002", 200*time.Millisecond)
 
 	<-SIGNAL_STOP
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	err := e.Shutdown(ctx)
-	if err != nil {
-		panic(err)
+	{
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := e.Shutdown(ctx)
+		if err != nil {
+			panic(err)
+		}
 	}
 	fmt.Println("Exit")
 }

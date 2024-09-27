@@ -1,28 +1,34 @@
 package internal
 
 import (
+	"context"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-type Job struct {
-	Counter prometheus.Counter
-}
-
-func NewJob() *Job {
-	return &Job{
-		Counter: promauto.NewCounter(prometheus.CounterOpts{
-			Name: METRIC_JOB_NAME,
-			Help: METRIC_JOB_DESCRIPTION,
-		}),
+func StartCounter(ctx context.Context, name string, delay time.Duration) {
+	c := promauto.NewCounter(prometheus.CounterOpts{
+		Name: name,
+		Help: "Counter for " + name,
+	})
+	for {
+		c.Inc()
+		time.Sleep(delay)
 	}
 }
 
-func (m *Job) Run() {
+func StartCounterVec(ctx context.Context, name string, label string, delay time.Duration) {
+	c := promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: name,
+			Help: "CounterVec for " + name,
+		},
+		[]string{label},
+	)
 	for {
-		m.Counter.Inc()
-		time.Sleep(1 * time.Second)
+		c.WithLabelValues(label).Inc()
+		time.Sleep(delay)
 	}
 }
