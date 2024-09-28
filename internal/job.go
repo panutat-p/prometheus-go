@@ -3,32 +3,38 @@ package internal
 import (
 	"context"
 	"time"
-
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-func StartCounter(ctx context.Context, name string, delay time.Duration) {
-	c := promauto.NewCounter(prometheus.CounterOpts{
-		Name: name,
-		Help: "Counter for " + name,
-	})
+func StartCounters(ctx context.Context) {
+	c1 := NewCounter("total_apple")
+	c2 := NewCounter("total_banana")
+	c3 := NewCounter("total_cherry")
 	for {
-		c.Inc()
-		time.Sleep(delay)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(200 * time.Millisecond):
+			c1.Inc()
+		case <-time.After(300 * time.Millisecond):
+			c2.Inc()
+		case <-time.After(400 * time.Millisecond):
+			c3.Inc()
+		}
 	}
 }
 
-func StartCounterVec(ctx context.Context, name string, label string, delay time.Duration) {
-	c := promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: name,
-			Help: "CounterVec for " + name,
-		},
-		[]string{label},
-	)
+func StartCounterVecs(ctx context.Context) {
+	c := NewCounterVec("total_fruit", []string{"apple", "banana", "cherry"})
 	for {
-		c.WithLabelValues(label).Inc()
-		time.Sleep(delay)
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(200 * time.Millisecond):
+			c.Inc("apple")
+		case <-time.After(300 * time.Millisecond):
+			c.Inc("banana")
+		case <-time.After(400 * time.Millisecond):
+			c.Inc("cherry")
+		}
 	}
 }

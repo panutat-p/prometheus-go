@@ -10,14 +10,16 @@ import (
 )
 
 type Handler struct {
-	Counter prometheus.Counter
+	MetricName string
+	Counter    prometheus.Counter
 }
 
 func NewHandler() *Handler {
 	return &Handler{
+		MetricName: "total_http_request",
 		Counter: promauto.NewCounter(prometheus.CounterOpts{
-			Name: METRIC_HANDLER_NAME,
-			Help: METRIC_HANDLER_DESCRIPTION,
+			Name: "total_http_request",
+			Help: "Counter for total_http_request",
 		}),
 	}
 }
@@ -39,9 +41,8 @@ func (h *Handler) Increase(c echo.Context) error {
 	h.Counter.Inc()
 	return c.JSON(
 		http.StatusOK, map[string]any{
-			"metric":      METRIC_HANDLER_NAME,
-			"description": METRIC_HANDLER_DESCRIPTION,
-			"action":      "increase",
+			"metric": h.MetricName,
+			"action": "increase",
 		},
 	)
 }

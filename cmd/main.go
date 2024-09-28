@@ -52,11 +52,8 @@ func main() {
 		}
 	}()
 
-	go internal.StartCounter(ctx, "total_apple", 500*time.Millisecond)
-	go internal.StartCounter(ctx, "total_banana", 1*time.Second)
-
-	go internal.StartCounterVec(ctx, "total_monkey", "001", 100*time.Millisecond)
-	go internal.StartCounterVec(ctx, "total_turtle", "002", 200*time.Millisecond)
+	go internal.StartCounters(ctx)
+	go internal.StartCounterVecs(ctx)
 
 	<-SIGNAL_STOP
 	{
