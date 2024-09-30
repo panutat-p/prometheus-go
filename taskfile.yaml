@@ -12,7 +12,7 @@ tasks:
 
   lint:
     cmds:
-      - gofmt -l -w .
+      - go fmt ./...
       - gci write --skip-generated --skip-vendor -s standard -s default -s 'prefix(github.com/panutat-p)' -s localmodule .
 
   open:
