@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"slices"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -13,6 +11,9 @@ type Counter struct {
 }
 
 func NewCounter(name string) *Counter {
+	if name == "" {
+		panic("empty name")
+	}
 	return &Counter{
 		Name: name,
 		Counter: promauto.NewCounter(prometheus.CounterOpts{
@@ -28,14 +29,21 @@ func (c *Counter) Inc() {
 
 type CounterVec struct {
 	Name    string
-	Labels  []string
+	Labels  map[string]struct{}
 	Counter *prometheus.CounterVec
 }
 
 func NewCounterVec(name string, labels []string) *CounterVec {
+	m := make(map[string]struct{})
+	for _, label := range labels {
+		if label == "" {
+			panic("empty label")
+		}
+		m[label] = struct{}{}
+	}
 	return &CounterVec{
 		Name:   name,
-		Labels: labels,
+		Labels: m,
 		Counter: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Name: name,
@@ -46,9 +54,6 @@ func NewCounterVec(name string, labels []string) *CounterVec {
 	}
 }
 
-func (c *CounterVec) Inc(label string) {
-	if !slices.Contains(c.Labels, label) {
-		panic("invalid label: " + label)
-	}
-	c.Counter.WithLabelValues(label).Inc()
+func (c *CounterVec) Inc(labels ...string) {
+	c.Counter.WithLabelValues(labels...).Inc()
 }
